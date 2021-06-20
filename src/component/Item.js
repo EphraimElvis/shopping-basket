@@ -8,18 +8,14 @@ const items = [
   { id: 3, product: "Soup", price: 0.65 },
 ];
 
-//count number of items
-//const prices = items.map((item, id) => item.price);
-const prices = [0, 0, 0, 0];
-
 const Item = () => {
   let week = true;
 
   const [counters, setCounters] = useState([0, 0, 0, 0]);
-  const [units, setUnits] = useState(prices);
-  const [purchase, setPurchase] = useState(units);
 
-  //const getPrices = items.map((item, id) => item.price);
+  //get list of all breads
+  const [breads, setBreads] = useState([]);
+
   const [total, setTotal] = useState(0.0);
   const [subTotal, setSubTotal] = useState(0.0);
 
@@ -29,8 +25,8 @@ const Item = () => {
         const price = items[ind].price;
         subTotal += price * counter;
 
-        total += calculateDiscount(price, ind, arr) * counter;
-
+        total += calculateDiscount(price, ind, arr, counter);
+        
         return { total, subTotal };
       },
       {
@@ -40,7 +36,7 @@ const Item = () => {
     );
     setTotal(total);
     setSubTotal(subTotal);
-    console.log(total, subTotal);
+    //console.log(total, subTotal);
   }, [counters]);
 
   const setCount = (index, newCounter) => {
@@ -49,37 +45,45 @@ const Item = () => {
     setCounters(newCounters);
   };
 
-  const setUnitPrice = (index, aaddnewUniPrice) => {
-    const addnewUniPrices = Object.assign([], units);
-    addnewUniPrices[index] = aaddnewUniPrice;
-    setUnits(addnewUniPrices);
-  };
-
-  const calculateDiscount = (originalPrice, ind, counterArr) => {
+  const calculateDiscount = (originalPrice, ind, counterArr, counter) => {
     const APPLE_PERCENT_0FF = 10;
     const BREAD_PERCENT_0FF = 50;
-
     const CENT = 100;
     let result = 0;
     if (week && ind === 0) {
       result = originalPrice - originalPrice * (APPLE_PERCENT_0FF / CENT);
-      return result;
+      return result * counter;
     }
     if (ind === 1) {
-      if (counterArr[3] >= 2) {
-        // if two soups are selected
-        const selectedBreads = counterArr[1];
-        // no of soups is X, number of discounted breads = Math.floor(X/2)
-        // selectedBreads-
-        result = originalPrice - originalPrice * (BREAD_PERCENT_0FF / CENT);
-        return result;
+      if ( Math.floor(counterArr[3] / 2)>0) {
+        let setOfSoups =  Math.floor(counterArr[3] / 2);
+        let breads = counterArr[1];
+        let breadPrice = 0;
+
+        while(setOfSoups && breads){
+          breadPrice += originalPrice- originalPrice * (BREAD_PERCENT_0FF / CENT);
+          setOfSoups-=1;
+          breads-=1;
+        }
+        while(breads){
+          breadPrice += originalPrice;
+          breads -=1;
+        }
+
+        return breadPrice;
+        
       }
     }
-    return originalPrice;
+    return originalPrice * counter;
   };
 
   const incrementPrice = (index, value, item) => {
     setCount(index, counters[index] + 1);
+    //add breads
+    if (item === 'Bread') {
+      setBreads((prev) => [...prev, {item:'Bread', discount:false}])
+    }
+   
   };
 
   const decrementPrice = (index) => {
